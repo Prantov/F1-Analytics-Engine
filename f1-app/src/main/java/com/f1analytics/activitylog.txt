@@ -1,0 +1,9 @@
+[2026-07-24 00:05]succesfully added 212 rows into the raw constructor table
+[2026-07-24 00:05]Successfully added 853 rows into the raw driver table.
+[2026-07-24 00:05]Succesfully added 78 rows into raw circuits table
+[2026-07-24 00:05]rollback succesfull for raw_races
+[2026-07-24 00:07]Succesfully added 1125 rows into raw_races table
+[2026-07-24 00:43]rollback succesfull for raw_races
+[2026-07-24 00:58]rollback succesfull for raw_races
+[2026-07-24 00:58]Succesfully added 26759 rows into raw_resutls table
+[2026-07-25 16:21]Succesfully added 589081 rows into raw_laptimes table
