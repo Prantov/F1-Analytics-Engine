@@ -47,15 +47,74 @@ public class StagingDAO {
             }
         }
     }
-
-
-    public void insertRawSprintResults(List<String[]> rawData){
-        String insert="INSERT INTO raw_sprint_results(result_id,race_id,driver_id,constructor_id,number,grid,position,position_order,points,laps,fastest_lap) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING";
-        int count=0;
+    public void switchinsert(List<String[]> rawData,int ch){
         Connection conn=null;
         try{
             conn=DBConnection.connectit();
             conn.setAutoCommit(false);
+            switch(ch){
+                case 1:insertRawConstructor(rawData,conn);
+                    break;
+                case 2:insertRawDriver(rawData,conn);
+                    break;
+                case 3:insertRawCircuits(rawData,conn);
+                    break;
+                case 4:insertRawRaces(rawData,conn);
+                    break;
+                case 5:insertRawResults(rawData,conn);
+                    break;
+                case 6:insertRawLapTimes(rawData,conn);
+                    break;
+                case 7:insertRawPitstops(rawData,conn);
+                    break;
+                case 8:insertRawConstructorResults(rawData,conn);
+                    break;
+                case 9:insertRawDriverStandings(rawData,conn);
+                    break;
+                case 10:insertRawConstructorStandings(rawData,conn);
+                    break;
+                case 11:insertSeasons(rawData,conn);
+                    break;
+                case 12:insertStatus(rawData,conn);
+                    break;
+                case 13:insertRawQualifying(rawData,conn);
+                    break;
+                case 14:insertRawSprintResults(rawData,conn);
+                    break;
+            }   
+        }
+        catch(SQLException e){
+            System.out.println("An error occured...");
+            try{
+                if(conn!=null){
+                    conn.rollback();
+                    AppLog.log("rollback succesfull");
+                }
+            }
+            catch(SQLException se){
+                    AppLog.log("Rollback failed: "+se.getMessage());
+                    se.printStackTrace();
+            }
+            
+            e.printStackTrace();
+        }
+        finally{
+            try{
+                if(conn!=null){
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            }
+            catch(SQLException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void insertRawSprintResults(List<String[]> rawData,Connection conn) throws SQLException {
+        String insert="INSERT INTO raw_sprint_results(result_id,race_id,driver_id,constructor_id,number,grid,position,position_order,points,laps,fastest_lap) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING";
+        int count=0;
+        conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,parseNum(data[0]));
@@ -80,42 +139,13 @@ public class StagingDAO {
 
             }
         }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for raw_sprint_results");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
-    }
 
     //load data into raw_qualifying table
-    public void insertRawQualifying(List<String[]> rawData){
+    private void insertRawQualifying(List<String[]> rawData,Connection conn) throws SQLException{
         String insert="INSERT INTO raw_qualifying(qualify_id,race_id,driver_id,constructor_id,number,position) VALUES(?,?,?,?,?,?) ON CONFLICT DO NOTHING";
         int count=0;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
+        
+        conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,parseNum(data[0]));
@@ -134,43 +164,12 @@ public class StagingDAO {
                 AppLog.log(String.format("Succesfully added %d rows into raw_qualifying table",count));
 
             }
-        }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for raw_qualifying");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
     }
 
     //load data into status table
-    public void insertStatus(List<String[]> rawData){
+    private void insertStatus(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO status(status_id,status) VALUES(?,?) ON CONFLICT DO NOTHING";
         int count=0;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,parseNum(data[0]));
@@ -185,43 +184,14 @@ public class StagingDAO {
                 AppLog.log(String.format("Succesfully added %d rows into status table",count));
 
             }
-        }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for status");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
     }
+        
+    
 
     //load data into seasons table
-    public void insertSeasons(List<String[]> rawData){
+    private void insertSeasons(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO seasons(year,url) VALUES(?,?) ON CONFLICT DO NOTHING";
         int count=0;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,parseNum(data[0]));
@@ -237,42 +207,13 @@ public class StagingDAO {
 
             }
         }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for seasons");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
-    }
+        
+    
 
     //load data into raw_constructor_standings
-    public void insertRawConstructorStandings(List<String[]> rawData){
+    private void insertRawConstructorStandings(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO raw_constructor_standings(constructor_standing_id,race_id,constructor_id,points,position,wins) VALUES(?,?,?,?,?,?) ON CONFLICT DO NOTHING";
         int count=0;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,parseNum(data[0]));
@@ -292,42 +233,13 @@ public class StagingDAO {
 
             }
         }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for raw_constructor_standings");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
-    }
+        
+    
 
     //load data into raw_driver_standings
-    public void insertRawDriverStandings(List<String[]> rawData){
+    private void insertRawDriverStandings(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO raw_driver_standings(driver_standing_id,race_id,driver_id,points,position,wins) VALUES(?,?,?,?,?,?) ON CONFLICT DO NOTHING";
         int count=0;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,parseNum(data[0]));
@@ -347,42 +259,13 @@ public class StagingDAO {
 
             }
         }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for raw_driver_standings");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
-    }
+        
+    
 
     //load data into raw_constructorresults
-    public void insertRawConstructorResults(List<String[]> rawData){
+    private void insertRawConstructorResults(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO raw_constructorresults(constructor_results_id,race_id,constructor_id,points) VALUES(?,?,?,?) ON CONFLICT DO NOTHING";
         int count=0;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,parseNum(data[0]));
@@ -400,42 +283,13 @@ public class StagingDAO {
 
             }
         }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for raw_constructorresults");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
-    }
+        
+    
 
     //insert data into raw_pitstops
-    public void insertRawPitstops(List<String[]> rawData){
+    private void insertRawPitstops(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO raw_pitstops(race_id,driver_id,stop,lap,time,duration,millisecond) VALUES(?,?,?,?,?,?,?) ON CONFLICT DO NOTHING";
         int count=0;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,parseNum(data[0]));
@@ -455,43 +309,13 @@ public class StagingDAO {
                 AppLog.log(String.format("Succesfully added %d rows into raw_pitstops table",count));
 
             }
-        }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for raw_pitstops");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
     }
+    
 
     //insert raw laptimes into table
-    public void insertRawLapTimes(List<String[]> rawData){
+    private void insertRawLapTimes(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO raw_laptimes(race_id,driver_id,lap,position,time,millisecond) VALUES(?,?,?,?,?,?) ON CONFLICT DO NOTHING";
         int count=0;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,parseNum(data[0]));
@@ -510,43 +334,13 @@ public class StagingDAO {
                 AppLog.log(String.format("Succesfully added %d rows into raw_laptimes table",count));
 
             }
-        }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for raw_laptimes");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
     }
+        
 
     //insert data into raw_results table
-    public void insertRawResults(List<String[]> rawData){
+    private void insertRawResults(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO raw_results(result_id,race_id,driver_id,constructor_id,number,grid,position,points) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING";
         int count=0;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,parseNum(data[0]));
@@ -568,42 +362,13 @@ public class StagingDAO {
 
             }
         }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for raw_races");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
-    }
+        
+    
 
     //insert data into raw_races table
-    public void insertRawRaces(List<String[]> rawData){
+    private void insertRawRaces(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO raw_races(race_id,year,round,circuit_id,name,date,time,url) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING";
         int count=0;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,Integer.parseInt(data[0]));
@@ -625,42 +390,13 @@ public class StagingDAO {
 
             }
         }
-        catch(SQLException e){
-            System.out.println("An error occured...");
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull for raw_races");
-                }
-            }
-            catch(SQLException se){
-                    AppLog.log("Rollback failed: "+se.getMessage());
-                    se.printStackTrace();
-            }
-            
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
-    }
+        
+    
 
     //insert data into raw_circuits table
-    public void insertRawCircuits(List<String[]> rawData){
+    private void insertRawCircuits(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO raw_circuits(circuit_id,circuit_ref,name,location,country,lat,lng,alt,url) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING";
         int count=1;
-        Connection conn=null;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try(PreparedStatement pt=conn.prepareStatement(insert)){
                 for(String[] data:rawData){
                     pt.setInt(1,Integer.parseInt(data[0]));
@@ -683,44 +419,13 @@ public class StagingDAO {
 
             }
         }
-        catch(SQLException e){
-            System.out.println("An error occured");
-            e.printStackTrace();
-            AppLog.log("An error occured in rawcircuits "+e.getMessage());
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("rollback succesfull in rawcircuits");
-                }
-            }
-            catch(SQLException s){
-                AppLog.log("rc roll back failed");
-            }
-            e.printStackTrace();
-        }
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }
-            catch(SQLException e){
-                e.getMessage();
-            }
-        }
-    }
+        
+    
     
     //Used to input raw constructor f1 data into database
-    public void insertRawConstructor(List<String[]> rawData){
+    private void insertRawConstructor(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO raw_constructors(constructor_id,constructor_ref,name,nationality,url) VALUES (?,?,?,?,?) ON CONFLICT DO NOTHING";
         int count=1;
-        Connection conn=null;
-        
-        try{
-            
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
             try (PreparedStatement pt = conn.prepareStatement(insert)) {
                     for(String[] st:rawData){
                         pt.setInt(1,Integer.parseInt(st[0]));
@@ -740,41 +445,12 @@ public class StagingDAO {
                     AppLog.log(String.format("succesfully added %d rows into the raw constructor table",count));
                 }
             }
-        catch(SQLException e){
-            System.out.println("An error occured while adding batch");
-            AppLog.log("Batch addition failed: reason: "+e.getMessage());
-            try{
-                if(conn!=null){conn.rollback();}
-                AppLog.log("raw constructor data succefully rolled back");
-            }
-            catch(SQLException se){
-                AppLog.log("rc roll back failed");
-            }
-            e.printStackTrace();
-        }
-        
-        finally{
-            try{
-                if(conn!=null){
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            }   
-            catch(SQLException e){
-                e.printStackTrace();
-            }
-        }
-    }
+    
 
     //Used to input raw drivers f1 data into database
-    public void insertRawDriver(List<String[]> rawData){
+    private void insertRawDriver(List<String[]> rawData,Connection conn)throws SQLException{
         String insert="INSERT INTO raw_drivers(driver_id,driver_ref,number,code,forename,surname,dob,nationality,url) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING";
-        Connection conn=null;
         int count=1;
-        try{
-            conn=DBConnection.connectit();
-            conn.setAutoCommit(false);
-
             try(PreparedStatement pt=conn.prepareStatement(insert)) {
                 for(String[] data:rawData){
                     pt.setInt(1,Integer.parseInt(data[0]));
@@ -797,31 +473,4 @@ public class StagingDAO {
                 AppLog.log(String.format("Successfully added %d rows into the raw driver table.",count));
             }
         }
-        catch(SQLException e){
-            System.out.println("an error occured while executing");
-            AppLog.log("Batch addition failed: reason: "+e.getMessage());
-            e.printStackTrace();
-            try{
-                if(conn!=null){
-                    conn.rollback();
-                    AppLog.log("raw driver data succesfully rolled back");
-                }
-            }
-            catch(SQLException es){
-                es.getMessage();
-                AppLog.log("rd roll back failed");
-            }
-        }
-        finally{
-            try{
-            if(conn!=null){
-                conn.setAutoCommit(true);
-                conn.close();
-            }
-            }
-            catch(SQLException e){e.printStackTrace();}
-        }
-    }
-
-    
 }
