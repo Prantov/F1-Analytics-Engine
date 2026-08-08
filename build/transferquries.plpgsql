@@ -82,3 +82,34 @@ FROM RankedDrivers w
 LEFT JOIN RankedDrivers r ON w.year=r.year and r.pos=2
 WHERE w.pos=1
 ON CONFLICT(cyear) DO NOTHING;
+
+
+--transform data into wcc table
+WITH TeamPoints AS (
+SELECT 
+ra.year,
+re.constructor_id,
+SUM(re.points) AS total_points
+FROM raw_results re
+JOIN raw_races ra ON re.race_id=ra.race_id
+GROUP BY ra.year,re.constructor_id
+),
+RankedTeams AS (
+SELECT
+year,
+constructor_id,
+total_points,
+ROW_NUMBER() OVER(PARTITION BY year ORDER BY total_points DESC) AS pos
+FROM TeamPoints
+)
+INSERT INTO Wcc(cyear,winnerteam_id,pointsw,runnerup_id,pointsr)
+SELECT
+TO_DATE(w.year::text,'YYYY') AS cyear,
+w.constructor_id AS winnerteam_id,
+w.total_points AS pointsw,
+r.constructor_id AS runnerup_id,
+COALESCE(r.total_points,0) AS pointsr
+FROM RankedTeams w
+LEFT JOIN RankedTeams r ON w.year=r.year AND r.pos=2
+WHERE w.pos=1
+ON CONFLICT (cyear) DO NOTHING;
