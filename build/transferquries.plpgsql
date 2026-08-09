@@ -113,3 +113,40 @@ FROM RankedTeams w
 LEFT JOIN RankedTeams r ON w.year=r.year AND r.pos=2
 WHERE w.pos=1
 ON CONFLICT (cyear) DO NOTHING;
+
+
+--updated wins, driver_championship and constructor_wins count in teams
+UPDATE teams 
+SET wins=COALESCE((
+SELECT COUNT (*)
+FROM raw_results r
+WHERE r.constructor_id=teams.id AND r.position='1'
+),0);
+
+WITH wdcwinteam AS(
+SELECT w.cyear,
+w.winnerdriver_id,
+(
+SELECT re.constructor_id
+FROM raw_results re
+JOIN raw_races ra ON re.race_id=ra.race_id
+WHERE ra.year=EXTRACT(YEAR FROM w.cyear)
+AND re.driver_id=w.winnerdriver_id
+GROUP BY re.constructor_id
+ORDER BY SUM(re.points) DESC
+LIMIT 1) AS constructor_id
+FROM Wdc w
+)
+UPDATE teams 
+SET driver_championship=COALESCE((
+SELECT COUNT(*)
+FROM wdcwinteam w
+WHERE w.constructor_id=teams.id
+),0);
+
+UPDATE teams
+SET constructor_wins = COALESCE((
+    SELECT COUNT(*)
+    FROM Wcc
+    WHERE Wcc.winnerteam_id = teams.id
+), 0);
