@@ -7,3 +7,12 @@
 [2026-07-24 00:58]rollback succesfull for raw_races
 [2026-07-24 00:58]Succesfully added 26759 rows into raw_resutls table
 [2026-07-25 16:21]Succesfully added 589081 rows into raw_laptimes table
+[2026-07-26 01:09]rollback succesfull for raw_pitstops
+[2026-07-26 01:10]Succesfully added 11371 rows into raw_pitstops table
+[2026-07-26 01:20]Succesfully added 12625 rows into raw_constructorresults table
+[2026-07-26 01:32]Succesfully added 34863 rows into raw_driver_standings table
+[2026-07-26 12:40]Succesfully added 75 rows into seasons table
+[2026-07-26 12:40]Succesfully added 13391 rows into raw_constructor_standings table
+[2026-07-26 12:43]Succesfully added 139 rows into status table
+[2026-07-26 12:43]Succesfully added 10494 rows into raw_qualifying table
+[2026-07-26 12:43]Succesfully added 360 rows into raw_sprint_results table

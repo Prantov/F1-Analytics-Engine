@@ -2,5 +2,4 @@ target/
 *.class
 .vscode/
 *.csv
-*.sql
 database.properties
