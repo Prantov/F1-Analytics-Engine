@@ -8,10 +8,13 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Scanner;
+import com.f1analytics.model.*;
+import com.f1analytics.util.*;
 
 public class TeamDAO {
-    public static void insertTeams(Scanner sc) {
+    public void insertTeams(Scanner sc) {
         ArrayList<Teams> arr=new ArrayList<>();
         String insert="INSERT INTO Teams(teamname,team_principal,founded,wins,constructor_wins,headquarters,engine_supplier,driver_championship) VALUES(?,?,?,?,?,?,?,?)";  
         System.out.println("Enter how many teams you want to insert");
@@ -19,9 +22,12 @@ public class TeamDAO {
         for(int i=0;i<n;i++){
             arr.add(new Teams(Ac.acceptstr(sc,"teamname"),Ac.acceptstr(sc,"team principal"),Ac.acceptint(sc,"race wins"),Ac.acceptint(sc,"constructor wins"),LocalDate.parse(Ac.acceptdt(sc,"founding date")),Ac.acceptstr(sc, "Headquarters"),Ac.acceptstr(sc,"engine supplier"),Ac.acceptint(sc, "driver championship")));
         }
-        try(Connection conn=DBConnection.connectit();
-            PreparedStatement pst=conn.prepareStatement(insert))
-            {
+        Connection conn=null;
+        try{
+            conn=DBConnection.connectit();
+            PreparedStatement pst=conn.prepareStatement(insert);
+            
+                conn.setAutoCommit(false);
                 System.out.println("Connecting to the database");
             
                 System.out.println("Connection Successful");
@@ -44,23 +50,154 @@ public class TeamDAO {
                 int a[]=pst.executeBatch();
                     pst.clearParameters();
             }
+        catch(SQLException e){
+            System.out.println("An error occured...");
+            try{
+                if(conn!=null){
+                    conn.rollback();
+                }
+            }
+            catch(SQLException se){
+                se.printStackTrace();
+            }
+            
+            e.printStackTrace();
+        }
+        finally{
+            try{
+                if(conn!=null){
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            }
             catch(SQLException e){
                 e.printStackTrace();
             }
+        }
     }
 
-    
+    public void updateTeams(Scanner sc){
+        //  this method takes no of fields user want to update, then passes the count to updaMap(), there the whole input works happen and it return the map with the user input, then in this method the user does the updation work
+        System.out.println("Enter how many teams you want to update");
+        int nc=Ac.acceptint(sc, "no of teams");
+        HashMap<String,ArrayList<LinkedHashMap<String,Object>>> list=new HashMap<>();
+        int temp=0;
+        
+        while(temp<nc){
+            System.out.println("Enter the no of fields you want to update?\nAvailable fields:\n' team_principal | founded | wins | constructor_wins | headquarters | engine_supplier | driver_championship'");
+            int n=Ac.acceptint(sc, "number of fields");
+            StringBuilder update=new StringBuilder();
+            LinkedHashMap<String,Object> map=updaMap(sc,n,update);
+            if(!list.containsKey(update.toString())){
+                ArrayList<LinkedHashMap<String,Object>> al=new ArrayList<>();
+                al.add(map);
+                list.put(update.toString(),al);
+            }
+            else{
+                list.get(update.toString()).add(map);
+            }
+        }
+        Connection conn=null;
+        try{
+            conn=DBConnection.connectit();
+            for(String upda:list.keySet()){
+                PreparedStatement pst=conn.prepareStatement(upda);
+                System.out.println("Connecting to the Database");
+                System.out.println("Connection succcessful");
+                int size=0,totrows=0;
+                while(size<list.get(upda).size()){
+                    
+                    int index = 1;
+                    HashMap<String, Object> paramMap = list.get(upda).get(size);
+                    for (String key : paramMap.keySet()) {
+                        if (!key.equalsIgnoreCase("teamname") && paramMap.get(key) != null) {
+                            Object userValue = paramMap.get(key);
+                        if (String.valueOf(userValue).equals("--")) {
+                            pst.setNull(index, java.sql.Types.VARCHAR);
+                        } else {
+                            pst.setObject(index, userValue); 
+                        }
+                        index++;
+                        }
+                    }
+                    size++;
+                    pst.setString(index, String.valueOf(paramMap.get("teamname")));
+                    int rowsAffected = pst.executeUpdate();
+                    totrows+=rowsAffected;
+                }
+                System.out.println("Update complete! Rows affected: " + totrows);   
+            }
+        }
+        catch(SQLException e){
+            System.out.println("An error occured...");
+            try{
+                if(conn!=null){
+                    conn.rollback();
+                }
+            }
+            catch(SQLException se){
+                se.printStackTrace();
+            } 
+            e.printStackTrace();
+        }
+        finally{
+            try{
+                if(conn!=null){
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            }
+            catch(SQLException e){
+                e.printStackTrace();
+            }
+        }    
+    }
+
+
+    private static LinkedHashMap<String,Object> updaMap(Scanner sc,int count,StringBuilder update){
+        LinkedHashMap<String,Object> map=new LinkedHashMap<>();
+        System.out.println("Enter the teamname you want to update");
+        map.put("teamname",Ac.acceptstr(sc, "teamname"));
+        System.out.println("you can use '--' mark to erase a field !!");
+        System.out.println("if you want to leave a field as it is, type 'NULL'");
+        update.append("UPDATE teams SET ");
+        int temp=0;
+        while(temp<count){
+            System.out.println("Enter the field you want to update!\n Available fields:\\n'1. team_principal | 2.founded | 3.wins | 4.constructor_wins | 5.headquarters | 6.engine_supplier | 7.driver_championship'");
+            int ch=Ac.acceptint(sc,"int val");
+            switch(ch){
+                case 1:map.put("team_principal",Ac.acceptstr(sc, "prinicipal name"));count++;
+                break;
+                case 2:map.put("founded",java.sql.Date.valueOf(Ac.acceptdt(sc, "foundation date")));count++;
+                break;
+                case 3:map.put("wins",Ac.acceptdbl(sc, "wins"));count++;
+                break;
+                case 4:map.put("constructor_wins",Ac.acceptint(sc, "const wins"));count++;
+                break;
+                case 5:map.put("headquarters",Ac.acceptstr(sc, "headquarters"));count++;
+                break;
+                case 6:map.put("engine_supplier",Ac.acceptstr(sc, "engine supplier"));count++;
+                break;
+                case 7:map.put("driver_championship",Ac.acceptint(sc, "driver champs"));count++;
+                break;
+                case 8:System.out.println("reenter your choice");
+            }
+        }
+        for(String col:map.keySet()){
+            if(!col.equalsIgnoreCase("teamname") && map.get(col)!=null)update.append(String.format("%s = ?, ",col));
+        }
+        update.setLength(update.length() - 2);
+        update.append("WHERE teamname = ?");
+        return map;
+    }
     
     private static HashMap<String,Integer> getMap(){
         String teamlist="SELECT teamname,id FROM Teams";
         HashMap<String,Integer> tml=new HashMap<>();
-        
             try(Connection conn=DBConnection.connectit();
                 PreparedStatement pst=conn.prepareStatement(teamlist))
-                {
-                
+                {    
                     ResultSet rs=pst.executeQuery();
-            
                     while(rs.next()){
                         tml.put(rs.getString("teamname"),rs.getInt("id"));
                     }
@@ -69,7 +206,6 @@ public class TeamDAO {
             catch(SQLException e){
                 e.printStackTrace();
             }
-        
         return tml;
     }
 
