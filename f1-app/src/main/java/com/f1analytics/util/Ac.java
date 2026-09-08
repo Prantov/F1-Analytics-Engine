@@ -3,6 +3,7 @@ import java.util.*;
 import java.time.*;
 import java.time.format.DateTimeParseException;
 import com.f1analytics.dao.*;
+import java.io.*;
 
 public class Ac {
     private static String toupper(String s){
@@ -107,5 +108,38 @@ public class Ac {
             }
         }
         return s;
+    }
+    public static int acceptint(String val,BufferedReader br){
+        PrintWriter pw=new PrintWriter(System.out,true);
+        int ch=1;
+        boolean check=true;
+        pw.println("enter "+val);
+        try{
+            while(check){
+                try{
+                    String input=br.readLine();
+                    if(input!=null){
+                        ch=Integer.parseInt(input.trim());
+                        if(ch>=0){
+                            check=false;
+                            return ch;
+                        }
+                        else pw.println("greater than or equals zero");
+                    }
+                    else{
+                        pw.println("enter some value pls");
+                    }
+                }
+                catch (IllegalArgumentException ex){
+                    pw.println("enter an integer ");
+                }
+            }
+        }
+        catch(IOException e){
+                pw.println(e.getMessage());
+                check=false;
+                return -1;
+            } 
+        return ch;
     }
 }

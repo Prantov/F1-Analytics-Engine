@@ -11,7 +11,11 @@ import java.util.*;
 import com.f1analytics.util.Ac;
 import com.f1analytics.util.DBConnection;
 import com.f1analytics.dao.TeamDAO;
+import com.f1analytics.dao.TracksDAO;
+import com.f1analytics.dao.WccDAO;
+import com.f1analytics.dao.WdcDAO;
 import com.f1analytics.dao.DriverDAO;
+import java.io.*;
 
 /**
  * Hello world!
@@ -20,33 +24,58 @@ import com.f1analytics.dao.DriverDAO;
 public class App 
 {  
     public static void main( String[] args )
-    {   
+    { 
+        BufferedReader br=null;
         Scanner sc=new Scanner(System.in);
+        try{
+        br=new BufferedReader(new InputStreamReader(System.in));
         System.out.println("welcome to the console");
-        Connection conn=DBConnection.connectit();
-        System.out.println("Enter your choice\n 1.Insert Data\n2.Update Data\n3.Delete Data\n4.Read Data");
+        System.out.println("Enter your choice\n 1.Teams Data\n 2. Drivers Data\n 3. Tracks Data\n 4. WDC Data\n 5. WCC Data\n 6. Miscellanious Data \n 7. Exit");
         int ch1=Ac.acceptint(sc, "choice"),ch2=0;
         switch(ch1){
-            case 1: System.out.println("Enter your choice\n1.Teams Data\n2.Driver Data\n3.Tracks Data\n4.WDC Data\n5.WCC Data");
-                    ch2=Ac.acceptint(sc, "choice");
-                    switch(ch2){
-                        case 1: TeamDAO.insertTeams(sc);
-                            break;
-                        case 2: DriverDAO.insertDrivers(sc);
-                            break;
-                        // case 3:insertTracks(sc);
-                        //     break;
-                        // case 4:insertWDC(sc);
-                        //     break;
-                        // case 5:insertWCC(sc);c;1
-                        //     break;
-                        default:System.out.println("invalid choice");
-                                System.exit(0);
-                    }
+            case 1: TeamDAO team=new TeamDAO();
+                    team.passChoice(sc, br);
                     break;
+
+            case 2: DriverDAO driver=new DriverDAO();
+                    driver.passChoice(sc,br);
+                    break;
+            
+            case 3: TracksDAO teacks=new TracksDAO();
+                    tracks.passChoice(sc,br);
+                    break;
+            
+            case 4: WdcDAO wdc=new WdcDAO();
+                    wdc.passChoice(sc,br);
+                    break;
+
+            case 5: WccDAO wcc=new WccDAO();
+                    wcc.passChoice(sc,br);
+                    break;
+
+            case 6: Extras extra=new Extras();
+                    extra.passChoice(sc,br);
+                    break;
+            
+            case 7: break;
+
             default:System.out.println("Invalid choice");
                     
         }
-        sc.close();
+        }
+        catch(IOException e){
+            System.out.println("an error occured");
+            System.out.println(e.getMessage());
+        }
+        catch(Exception e){
+            System.out.println("an error occured");
+            System.out.println(e.getMessage());
+        }
+        finally{
+            if(br!=null){
+                br.close();
+            }
+            sc.close();
+        }
     }
 }

@@ -6,15 +6,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Scanner;
+import java.util.*;
 import com.f1analytics.model.*;
 import com.f1analytics.util.*;
+import java.io.*;
 
 public class TeamDAO {
-    public void insertTeams(Scanner sc) {
+
+    public void passChoice(Scanner sc,BufferedReader br){
+        
+    }
+
+    private void insertTeams(Scanner sc) {
         ArrayList<Teams> arr=new ArrayList<>();
         String insert="INSERT INTO Teams(teamname,team_principal,founded,wins,constructor_wins,headquarters,engine_supplier,driver_championship) VALUES(?,?,?,?,?,?,?,?)";  
         System.out.println("Enter how many teams you want to insert");
@@ -76,7 +79,7 @@ public class TeamDAO {
         }
     }
 
-    public void updateTeams(Scanner sc){
+    private void updateTeams(Scanner sc){
         //  this method takes no of fields user want to update, then passes the count to updaMap(), there the whole input works happen and it return the map with the user input, then in this method the user does the updation work
         System.out.println("Enter how many teams you want to update");
         int nc=Ac.acceptint(sc, "no of teams");
@@ -97,36 +100,80 @@ public class TeamDAO {
                 list.get(update.toString()).add(map);
             }
         }
+        executeTeamUpdates(list);
+    }
+
+    private void updateTeams(String csvFilePath) {
+        HashMap<String,ArrayList<LinkedHashMap<String,Object>>> list=new HashMap<>();
+        String[] columns={"teamname","team_principal","founded","wins","constructor_wins","headquarters","engine_supplier","driver_championship"};
+
+        try {
+            List<String[]> rows=CSVImporter.readcsv(csvFilePath);
+            for(String[] row:rows){
+                if(row.length < columns.length + 1){
+                    throw new IllegalArgumentException("Invalid team update row: expected 9 columns");
+                }
+
+                LinkedHashMap<String,Object> map=new LinkedHashMap<>();
+                map.put("teamname", row[1].trim());
+                StringBuilder update=new StringBuilder("UPDATE teams SET ");
+                for(int i=2;i<columns.length + 1;i++){
+                    String value=row[i].trim();
+                    if(!value.isEmpty() && !value.equalsIgnoreCase("null")){
+                        Object parsedValue=switch(columns[i-1]){
+                            case "founded" -> java.sql.Date.valueOf(value);
+                            case "wins", "constructor_wins", "driver_championship" -> Integer.valueOf(value);
+                            default -> value;
+                        };
+                        map.put(columns[i-1], parsedValue);
+                        update.append(columns[i-1]).append(" = ?, ");
+                    }
+                }
+                if(map.size() == 1){
+                    continue;
+                }
+                update.setLength(update.length() - 2);
+                update.append("WHERE teamname = ?");
+                list.computeIfAbsent(update.toString(), key -> new ArrayList<>()).add(map);
+            }
+        }
+        catch(Exception e){
+            System.out.println("Unable to read team update CSV: " + e.getMessage());
+            return;
+        }
+
+        executeTeamUpdates(list);
+    }
+
+    private void executeTeamUpdates(HashMap<String,ArrayList<LinkedHashMap<String,Object>>> updates){
         Connection conn=null;
         try{
             conn=DBConnection.connectit();
-            for(String upda:list.keySet()){
-                PreparedStatement pst=conn.prepareStatement(upda);
-                System.out.println("Connecting to the Database");
-                System.out.println("Connection succcessful");
-                int size=0,totrows=0;
-                while(size<list.get(upda).size()){
-                    
-                    int index = 1;
-                    HashMap<String, Object> paramMap = list.get(upda).get(size);
-                    for (String key : paramMap.keySet()) {
-                        if (!key.equalsIgnoreCase("teamname") && paramMap.get(key) != null) {
-                            Object userValue = paramMap.get(key);
-                        if (String.valueOf(userValue).equals("--")) {
-                            pst.setNull(index, java.sql.Types.VARCHAR);
-                        } else {
-                            pst.setObject(index, userValue); 
+            conn.setAutoCommit(false);
+            for(String updateSql:updates.keySet()){
+                try(PreparedStatement pst=conn.prepareStatement(updateSql)){
+                    int totalRows=0;
+                    for(LinkedHashMap<String,Object> paramMap:updates.get(updateSql)){
+                        int index=1;
+                        for(String key:paramMap.keySet()){
+                            if(!key.equalsIgnoreCase("teamname") && paramMap.get(key)!=null){
+                                Object userValue=paramMap.get(key);
+                                if(String.valueOf(userValue).equals("--")){
+                                    pst.setNull(index,java.sql.Types.VARCHAR);
+                                }
+                                else{
+                                    pst.setObject(index,userValue);
+                                }
+                                index++;
+                            }
                         }
-                        index++;
-                        }
+                        pst.setString(index,String.valueOf(paramMap.get("teamname")));
+                        totalRows+=pst.executeUpdate();
                     }
-                    size++;
-                    pst.setString(index, String.valueOf(paramMap.get("teamname")));
-                    int rowsAffected = pst.executeUpdate();
-                    totrows+=rowsAffected;
+                    System.out.println("Update complete! Rows affected: " + totalRows);
                 }
-                System.out.println("Update complete! Rows affected: " + totrows);   
             }
+            conn.commit();
         }
         catch(SQLException e){
             System.out.println("An error occured...");
@@ -137,7 +184,7 @@ public class TeamDAO {
             }
             catch(SQLException se){
                 se.printStackTrace();
-            } 
+            }
             e.printStackTrace();
         }
         finally{
@@ -150,7 +197,7 @@ public class TeamDAO {
             catch(SQLException e){
                 e.printStackTrace();
             }
-        }    
+        }
     }
 
 
