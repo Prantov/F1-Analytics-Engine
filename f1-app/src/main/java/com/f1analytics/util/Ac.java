@@ -4,6 +4,7 @@ import java.time.*;
 import java.time.format.DateTimeParseException;
 import com.f1analytics.dao.*;
 import java.io.*;
+import java.nio.file.*;
 
 public class Ac {
     private static String toupper(String s){
@@ -141,5 +142,50 @@ public class Ac {
                 return -1;
             } 
         return ch;
+    }
+
+    public static String filepath(BufferedReader br){
+        PrintWriter pw=new PrintWriter(System.out,true);
+
+        while(true){
+            pw.println("Enter the full file path in proper format");
+
+            final String input;
+            try{
+                input=br.readLine();
+            }
+            catch(IOException | SecurityException e){
+                pw.println("Could not read or access the path: " + e.getMessage());
+                return null;
+            }
+
+            if(input==null){
+                return null;
+            }
+
+            try{
+                Path path=Path.of(input.trim());
+                Path directory=path.getParent();
+
+                if(!Files.isRegularFile(path)){
+                    pw.println("That file does not exist. Please try again.");
+                    continue;
+                }
+
+                if(directory!=null && !Files.isDirectory(directory)){
+                    pw.println("That directory does not exist. Please try again.");
+                    continue;
+                }
+
+                return path.toAbsolutePath().normalize().toString();
+            }
+            catch(InvalidPathException e){
+                pw.println("That is not a valid path. Please try again.");
+            }
+            catch(SecurityException e){
+                pw.println("The path cannot be accessed: " + e.getMessage());
+                return "";
+            }
+        }
     }
 }

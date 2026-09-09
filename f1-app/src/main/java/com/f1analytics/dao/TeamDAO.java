@@ -14,7 +14,36 @@ import java.io.*;
 public class TeamDAO {
 
     public void passChoice(Scanner sc,BufferedReader br){
-        
+        PrintWriter pw=new PrintWriter(System.out,true);
+        pw.println("What action do you want to perform??");
+        pw.println("1. Insert new team data\n 2. Update Team Data\n3.Read Team Data \n4. exit");
+
+        boolean check2=true;
+        int ch=Ac.acceptint("choice", br);
+        if(ch==2){
+            while(check2){
+            pw.println("1. update by importing from file \n 2.update by individual input \n3. exit");
+            int ch2=Ac.acceptint(sc,"choice");
+            
+            switch(ch2){
+                case 1:updateTeams(Ac.filepath(br));
+                        check2=false;
+                        break;
+
+                case 2:updateTeams(sc);
+                        check2=false;
+                        break;
+                
+                case 3:check2=false; 
+                    break;
+
+                default: pw.println("invalid choice try again");
+            }
+        }
+        }
+        if(ch==1){
+            insertTeams(sc);
+        }
     }
 
     private void insertTeams(Scanner sc) {
@@ -121,7 +150,9 @@ public class TeamDAO {
                     String value=row[i].trim();
                     if(!value.isEmpty() && !value.equalsIgnoreCase("null")){
                         Object parsedValue=switch(columns[i-1]){
-                            case "founded" -> java.sql.Date.valueOf(value);
+                            case "founded" -> value.matches("\\d{4}")
+                                    ? java.sql.Date.valueOf(value + "-01-01")
+                                    : java.sql.Date.valueOf(value);
                             case "wins", "constructor_wins", "driver_championship" -> Integer.valueOf(value);
                             default -> value;
                         };
@@ -133,7 +164,7 @@ public class TeamDAO {
                     continue;
                 }
                 update.setLength(update.length() - 2);
-                update.append("WHERE teamname = ?");
+                update.append(" WHERE teamname = ?");
                 list.computeIfAbsent(update.toString(), key -> new ArrayList<>()).add(map);
             }
         }
@@ -234,7 +265,7 @@ public class TeamDAO {
             if(!col.equalsIgnoreCase("teamname") && map.get(col)!=null)update.append(String.format("%s = ?, ",col));
         }
         update.setLength(update.length() - 2);
-        update.append("WHERE teamname = ?");
+        update.append(" WHERE teamname = ?");
         return map;
     }
     

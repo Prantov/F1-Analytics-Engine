@@ -10,11 +10,7 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 import com.f1analytics.util.Ac;
 import com.f1analytics.util.DBConnection;
-import com.f1analytics.dao.TeamDAO;
-import com.f1analytics.dao.TracksDAO;
-import com.f1analytics.dao.WccDAO;
-import com.f1analytics.dao.WdcDAO;
-import com.f1analytics.dao.DriverDAO;
+import com.f1analytics.dao.*;
 import java.io.*;
 
 /**
@@ -23,7 +19,7 @@ import java.io.*;
  */
 public class App 
 {  
-    public static void main( String[] args )
+    public static void main( String[] args ) throws Exception 
     { 
         BufferedReader br=null;
         Scanner sc=new Scanner(System.in);
@@ -41,21 +37,21 @@ public class App
                     driver.passChoice(sc,br);
                     break;
             
-            case 3: TracksDAO teacks=new TracksDAO();
-                    tracks.passChoice(sc,br);
-                    break;
+            // case 3: TracksDAO teacks=new TracksDAO();
+            //         tracks.passChoice(sc,br);
+            //         break;
             
-            case 4: WdcDAO wdc=new WdcDAO();
-                    wdc.passChoice(sc,br);
-                    break;
+            // case 4: WdcDAO wdc=new WdcDAO();
+            //         wdc.passChoice(sc,br);
+            //         break;
 
-            case 5: WccDAO wcc=new WccDAO();
-                    wcc.passChoice(sc,br);
-                    break;
+            // case 5: WccDAO wcc=new WccDAO();
+            //         wcc.passChoice(sc,br);
+            //         break;
 
-            case 6: Extras extra=new Extras();
-                    extra.passChoice(sc,br);
-                    break;
+            // case 6: Extras extra=new Extras();
+            //         extra.passChoice(sc,br);
+            //         break;
             
             case 7: break;
 
@@ -63,19 +59,17 @@ public class App
                     
         }
         }
-        catch(IOException e){
-            System.out.println("an error occured");
-            System.out.println(e.getMessage());
-        }
+        
         catch(Exception e){
             System.out.println("an error occured");
             System.out.println(e.getMessage());
         }
         finally{
             if(br!=null){
-                br.close();
-            }
+                try{ br.close();}
+                catch(IOException e){e.printStackTrace();}
             sc.close();
+        }
         }
     }
 }
