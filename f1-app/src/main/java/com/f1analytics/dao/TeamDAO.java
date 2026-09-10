@@ -80,6 +80,7 @@ public class TeamDAO {
                 System.out.println("added to list");
                 
                 int a[]=pst.executeBatch();
+                    conn.commit();
                     pst.clearParameters();
             }
         catch(SQLException e){

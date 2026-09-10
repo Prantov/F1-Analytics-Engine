@@ -85,6 +85,7 @@ public class DriverDAO {
             }
                     
             int a[]=pst.executeBatch();
+            conn.commit();
             pst.clearParameters(); 
         }  
         catch(SQLException e){

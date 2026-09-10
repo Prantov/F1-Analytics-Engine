@@ -37,9 +37,9 @@ public class App
                     driver.passChoice(sc,br);
                     break;
             
-            // case 3: TracksDAO teacks=new TracksDAO();
-            //         tracks.passChoice(sc,br);
-            //         break;
+            case 3: TracksDAO tracks=new TracksDAO();
+                    tracks.passChoice(sc,br);
+                    break;
             
             // case 4: WdcDAO wdc=new WdcDAO();
             //         wdc.passChoice(sc,br);
