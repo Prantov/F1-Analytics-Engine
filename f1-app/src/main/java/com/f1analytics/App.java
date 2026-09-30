@@ -1,22 +1,11 @@
 package com.f1analytics;
 
-import java.sql.SQLException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.PreparedStatement;
-import java.sql.DriverManager;
-import java.time.*;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import com.f1analytics.util.Ac;
-import com.f1analytics.util.DBConnection;
 import com.f1analytics.dao.*;
 import java.io.*;
 
-/**
- * Hello world!
- *
- */
+
 public class App 
 {  
     public static void main( String[] args ) throws Exception 
@@ -41,13 +30,13 @@ public class App
                     tracks.passChoice(sc,br);
                     break;
             
-            // case 4: WdcDAO wdc=new WdcDAO();
-            //         wdc.passChoice(sc,br);
-            //         break;
+                case 4: WdcDAO wdc=new WdcDAO();
+                    wdc.passChoice(sc,br);
+                    break;
 
-            // case 5: WccDAO wcc=new WccDAO();
-            //         wcc.passChoice(sc,br);
-            //         break;
+                case 5: WccDAO wcc=new WccDAO();
+                    wcc.passChoice(sc,br);
+                    break;
 
             // case 6: Extras extra=new Extras();
             //         extra.passChoice(sc,br);
